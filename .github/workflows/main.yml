@@ -1,7 +1,7 @@
 name: RDP
 
 on:
-  workflow_dispatch:
+  workflow_dispatch
 
 jobs:
   secure-rdp:
@@ -23,31 +23,19 @@ jobs:
 
           Restart-Service -Name TermService -Force
 
-      - name: Create RDP User (Custom)
+      - name: Create RDP User (FROM SECRETS)
         run: |
-          Add-Type -AssemblyName System.Security
-
-          $charSet = @{
-              Upper   = [char[]](65..90)
-              Lower   = [char[]](97..122)
-              Number  = [char[]](48..57)
-          }
-
-          $rawPassword = @()
-          $rawPassword += $charSet.Upper | Get-Random -Count 5
-          $rawPassword += $charSet.Lower | Get-Random -Count 5
-          $rawPassword += $charSet.Number | Get-Random -Count 6
-
-          $password = -join ($rawPassword | Sort-Object { Get-Random })
+          # AMBIL DARI SECRETS
+          $username = "${{ secrets.UserName }}"
+          $password = "${{ secrets.PssWd }}"
+          
           $securePass = ConvertTo-SecureString $password -AsPlainText -Force
 
-          New-LocalUser -Name "srart24" -Password $securePass -AccountNeverExpires
-          Add-LocalGroupMember -Group "Administrators" -Member "srart24"
-          Add-LocalGroupMember -Group "Remote Desktop Users" -Member "srart24"
+          New-LocalUser -Name $username -Password $securePass -AccountNeverExpires
+          Add-LocalGroupMember -Group "Administrators" -Member $username
+          Add-LocalGroupMember -Group "Remote Desktop Users" -Member $username
 
-          echo "RDP_CREDS=User: srart24 | Password: $password" >> $env:GITHUB_ENV
-
-          if (-not (Get-LocalUser -Name "srart24")) {
+          if (-not (Get-LocalUser -Name $username)) {
               Write-Error "User creation failed"
               exit 1
           }
@@ -96,8 +84,8 @@ jobs:
         run: |
           Write-Host "`n=== RDP ACCESS ==="
           Write-Host "Address: $env:TAILSCALE_IP"
-          Write-Host "Username: srart24"
-          Write-Host "Password: $(echo $env:RDP_CREDS)"
+          Write-Host "Username: (Hidden)"
+          Write-Host "Password: (Hidden)"
           Write-Host "==================`n"
 
           while ($true) {
