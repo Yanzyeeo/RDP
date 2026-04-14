@@ -26,8 +26,8 @@ jobs:
       - name: Create RDP User (FROM SECRETS)
         run: |
           # AMBIL DARI SECRETS
-          $username = "${{ secrets.UserName }}"
-          $password = "${{ secrets.PssWd }}"
+          $username = "${{ secrets.USERNAME }}"
+          $password = "${{ secrets.PSSDW }}"
           
           $securePass = ConvertTo-SecureString $password -AsPlainText -Force
 
